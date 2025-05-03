@@ -1,22 +1,31 @@
-let portfolio = JSON.parse(localStorage.getItem('portfolio')) || [
-  { id: 'bitcoin', symbol: 'BTC', quantity: 0.5 },
-  { id: 'ethereum', symbol: 'ETH', quantity: 2 },
-  { id: 'solana', symbol: 'SOL', quantity: 10 },
-  { id: 'tether', symbol: 'USDT', quantity: 1000 },
-];
+let portfolio = JSON.parse(localStorage.getItem('portfolio')) || [];
+let history = JSON.parse(localStorage.getItem('history')) || [];
 
 function savePortfolio() {
   localStorage.setItem('portfolio', JSON.stringify(portfolio));
 }
 
-function updateTokenList() {
+function saveHistory(entry) {
+  history.push(entry);
+  localStorage.setItem('history', JSON.stringify(history));
+}
+
+function updateTokenList(prices) {
   const container = document.getElementById('tokenList');
   container.innerHTML = '';
   portfolio.forEach((token, index) => {
+    const price = prices[token.id]?.brl || 0;
+    const currentValue = token.quantity * price;
+    const investedValue = token.quantity * token.avgPrice;
+    const pnl = currentValue - investedValue;
+    const pnlPercent = ((pnl / investedValue) * 100).toFixed(2);
+    const pnlColor = pnl >= 0 ? '#00e676' : '#ff5252';
+
     const div = document.createElement('div');
     div.innerHTML = `
-      <strong>${token.symbol}</strong> — ${token.quantity} 
-      <button onclick="editToken(${index})">Editar</button>
+      <strong>${token.symbol}</strong> — ${token.quantity} (Preço médio: R$${token.avgPrice})
+      <br>📈 PnL: <span style="color:${pnlColor}">R$ ${pnl.toFixed(2)} (${pnlPercent}%)</span>
+      <br><button onclick="editToken(${index})">Editar</button>
       <button onclick="removeToken(${index})">Remover</button>
     `;
     container.appendChild(div);
@@ -26,8 +35,10 @@ function updateTokenList() {
 window.editToken = function (index) {
   const token = portfolio[index];
   const newQty = prompt(`Nova quantidade para ${token.symbol}:`, token.quantity);
-  if (newQty !== null && !isNaN(parseFloat(newQty))) {
+  const newAvg = prompt(`Novo preço médio para ${token.symbol}:`, token.avgPrice);
+  if (newQty !== null && !isNaN(parseFloat(newQty)) && newAvg !== null && !isNaN(parseFloat(newAvg))) {
     portfolio[index].quantity = parseFloat(newQty);
+    portfolio[index].avgPrice = parseFloat(newAvg);
     savePortfolio();
     updateChart();
   }
@@ -62,27 +73,37 @@ async function updateChart() {
   });
 
   document.getElementById('totalValue').textContent = `Valor total: R$ ${total.toFixed(2)}`;
-  updateTokenList();
+  updateTokenList(prices);
+  saveHistory({ date: new Date().toLocaleDateString(), total: total });
 
-  const data = [{
+  Plotly.newPlot('chart', [{
     values: values,
     labels: labels,
     type: 'pie',
     hole: 0.4,
-    textinfo: 'label+percent',
-    textposition: 'outside',
     marker: {
       colors: ['#f4b183', '#d9d9d9', '#6f42c1', '#a9d18e', '#5b9bd5', '#ff6384', '#36a2eb', '#ffcd56']
     }
-  }];
-
-  const layout = {
+  }], {
     paper_bgcolor: '#111',
     font: { color: '#f1f1f1' },
     showlegend: true
-  };
+  }, { responsive: true });
 
-  Plotly.newPlot('chart', data, layout, { responsive: true });
+  const historyLabels = history.map(entry => entry.date);
+  const historyValues = history.map(entry => entry.total);
+
+  Plotly.newPlot('historyChart', [{
+    x: historyLabels,
+    y: historyValues,
+    type: 'bar',
+    marker: { color: '#00e676' }
+  }], {
+    title: 'Histórico do Valor Total da Carteira',
+    paper_bgcolor: '#111',
+    plot_bgcolor: '#111',
+    font: { color: '#f1f1f1' }
+  }, { responsive: true });
 }
 
 document.getElementById('addTokenForm').addEventListener('submit', async (e) => {
@@ -90,15 +111,16 @@ document.getElementById('addTokenForm').addEventListener('submit', async (e) => 
   const id = document.getElementById('tokenId').value.trim().toLowerCase();
   const symbol = document.getElementById('tokenSymbol').value.trim().toUpperCase();
   const quantity = parseFloat(document.getElementById('tokenQty').value);
+  const avgPrice = parseFloat(document.getElementById('tokenAvg').value);
 
-  if (!id || !symbol || isNaN(quantity)) return alert('Preencha todos os campos corretamente.');
+  if (!id || !symbol || isNaN(quantity) || isNaN(avgPrice)) return alert('Preencha todos os campos corretamente.');
   if (portfolio.find(t => t.id === id)) return alert('Esse token já está na lista.');
 
   const check = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=brl`);
   const data = await check.json();
   if (!data[id]) return alert('ID de token inválido.');
 
-  portfolio.push({ id, symbol, quantity });
+  portfolio.push({ id, symbol, quantity, avgPrice });
   savePortfolio();
   updateChart();
   e.target.reset();
