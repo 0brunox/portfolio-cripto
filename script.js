@@ -31,8 +31,7 @@ window.editToken = function (index) {
   if (newQty !== null && !isNaN(parseFloat(newQty))) {
     portfolio[index].quantity = parseFloat(newQty);
     savePortfolio();
-    window.addEventListener("load", updateChart);
-
+    updateChart();
   }
 };
 
@@ -40,8 +39,7 @@ window.removeToken = function (index) {
   if (confirm(`Deseja remover ${portfolio[index].symbol}?`)) {
     portfolio.splice(index, 1);
     savePortfolio();
-    window.addEventListener("load", updateChart);
-
+    updateChart();
   }
 };
 
@@ -69,11 +67,10 @@ async function updateChart() {
   document.getElementById('totalValue').textContent = `Valor total: R$ ${total.toFixed(2)}`;
   updateTokenList();
 
+  let container = document.getElementById("chartdiv");
+  container.innerHTML = "";
+
   am5.ready(function () {
-    let container = document.getElementById("chartdiv");
-container.innerHTML = "";
-
-
     let root = am5.Root.new(chartContainerId);
     root.setThemes([am5themes_Dark.new(root)]);
 
@@ -115,4 +112,4 @@ document.getElementById('addTokenForm').addEventListener('submit', async (e) => 
   e.target.reset();
 });
 
-updateChart();
+window.addEventListener("load", updateChart);
