@@ -164,7 +164,7 @@ document.getElementById('importWalletForm').addEventListener('submit', async (e)
   const address = document.getElementById('walletAddress').value.trim();
   if (!address) return alert("Endereço inválido");
 
-  const apiKey = 'cqt_rQFCbFDfyMPCGX9GhqgDxKj8PcHD'; // 🔁 Substituir pela sua API KEY do Covalent
+  const apiKey = 'ckey_demo'; // 🔁 Substituir pela sua API KEY do Covalent
   const url = `https://api.covalenthq.com/v1/1/address/${address}/balances_v2/?key=${apiKey}`;
 
   try {
@@ -196,5 +196,30 @@ document.getElementById('importWalletForm').addEventListener('submit', async (e)
   } catch (err) {
     console.error(err);
     alert("Erro ao importar tokens. Verifique o endereço ou a API Key.");
+  }
+});
+
+document.getElementById('connectBtn').addEventListener('click', async () => {
+  if (typeof window.ethereum !== 'undefined') {
+    try {
+      const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
+      const address = accounts[0];
+      localStorage.setItem('connectedWallet', address);
+      document.getElementById('connectedAddress').textContent = `Wallet: ${address}`;
+      document.getElementById('walletAddress').value = address;
+    } catch (err) {
+      alert('Erro ao conectar com MetaMask.');
+      console.error(err);
+    }
+  } else {
+    alert('MetaMask não encontrado. Instale a extensão.');
+  }
+});
+
+window.addEventListener('load', () => {
+  const saved = localStorage.getItem('connectedWallet');
+  if (saved) {
+    document.getElementById('connectedAddress').textContent = `Wallet: ${saved}`;
+    document.getElementById('walletAddress').value = saved;
   }
 });
