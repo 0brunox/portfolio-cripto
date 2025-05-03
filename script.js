@@ -164,7 +164,7 @@ document.getElementById('importWalletForm').addEventListener('submit', async (e)
   const address = document.getElementById('walletAddress').value.trim();
   if (!address) return alert("Endereço inválido");
 
-  const apiKey = 'cqt_rQbFyvHKVJm9JwtKb3pmqm7FYtr9'; // 🔁 Substituir pela sua API KEY do Covalent
+  const apiKey = 'cqt_rQFCbFDfyMPCGX9GhqgDxKj8PcHD'; // 🔁 Substituir pela sua API KEY do Covalent
   const url = `https://api.covalenthq.com/v1/1/address/${address}/balances_v2/?key=${apiKey}`;
 
   try {
