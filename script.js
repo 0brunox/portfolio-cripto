@@ -40,7 +40,8 @@ window.removeToken = function (index) {
   if (confirm(`Deseja remover ${portfolio[index].symbol}?`)) {
     portfolio.splice(index, 1);
     savePortfolio();
-    updateChart();
+    window.addEventListener("load", updateChart);
+
   }
 };
 
