@@ -1,5 +1,13 @@
 let portfolio = JSON.parse(localStorage.getItem('portfolio')) || [];
 let history = JSON.parse(localStorage.getItem('history')) || [];
+let selectedCurrency = localStorage.getItem('currency') || 'brl';
+
+document.getElementById('currencySelector').value = selectedCurrency;
+document.getElementById('currencySelector').addEventListener('change', (e) => {
+  selectedCurrency = e.target.value;
+  localStorage.setItem('currency', selectedCurrency);
+  updateChart();
+});
 
 function savePortfolio() {
   localStorage.setItem('portfolio', JSON.stringify(portfolio));
@@ -14,17 +22,18 @@ function updateTokenList(prices) {
   const container = document.getElementById('tokenList');
   container.innerHTML = '';
   portfolio.forEach((token, index) => {
-    const price = prices[token.id]?.brl || 0;
+    const price = prices[token.id]?.[selectedCurrency] || 0;
     const currentValue = token.quantity * price;
     const investedValue = token.quantity * token.avgPrice;
     const pnl = currentValue - investedValue;
     const pnlPercent = ((pnl / investedValue) * 100).toFixed(2);
     const pnlColor = pnl >= 0 ? '#00e676' : '#ff5252';
+    const symbol = selectedCurrency === 'usd' ? '$' : 'R$';
 
     const div = document.createElement('div');
     div.innerHTML = `
-      <strong>${token.symbol}</strong> — ${token.quantity} (Preço médio: R$${token.avgPrice})
-      <br>📈 PnL: <span style="color:${pnlColor}">R$ ${pnl.toFixed(2)} (${pnlPercent}%)</span>
+      <strong>${token.symbol}</strong> — ${token.quantity} (Preço médio: ${symbol}${token.avgPrice})
+      <br>📈 PnL: <span style="color:${pnlColor}">${symbol}${pnl.toFixed(2)} (${pnlPercent}%)</span>
       <br><button onclick="editToken(${index})">Editar</button>
       <button onclick="removeToken(${index})">Remover</button>
     `;
@@ -54,7 +63,7 @@ window.removeToken = function (index) {
 
 async function fetchPrices() {
   const ids = portfolio.map(coin => coin.id).join(',');
-  const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=brl`);
+  const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=brl,usd`);
   return await res.json();
 }
 
@@ -63,16 +72,17 @@ async function updateChart() {
   const labels = [];
   const values = [];
   let total = 0;
+  const currencySymbol = selectedCurrency === 'usd' ? '$' : 'R$';
 
   portfolio.forEach(coin => {
-    const price = prices[coin.id]?.brl || 0;
+    const price = prices[coin.id]?.[selectedCurrency] || 0;
     const value = coin.quantity * price;
     labels.push(coin.symbol);
     values.push(value);
     total += value;
   });
 
-  document.getElementById('totalValue').textContent = `Valor total: R$ ${total.toFixed(2)}`;
+  document.getElementById('totalValue').textContent = `Valor total: ${currencySymbol} ${total.toFixed(2)}`;
   updateTokenList(prices);
   saveHistory({ date: new Date().toLocaleDateString(), total: total });
 
@@ -116,7 +126,7 @@ document.getElementById('addTokenForm').addEventListener('submit', async (e) => 
   if (!id || !symbol || isNaN(quantity) || isNaN(avgPrice)) return alert('Preencha todos os campos corretamente.');
   if (portfolio.find(t => t.id === id)) return alert('Esse token já está na lista.');
 
-  const check = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=brl`);
+  const check = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=brl,usd`);
   const data = await check.json();
   if (!data[id]) return alert('ID de token inválido.');
 
