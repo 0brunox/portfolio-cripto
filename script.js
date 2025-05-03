@@ -31,7 +31,8 @@ window.editToken = function (index) {
   if (newQty !== null && !isNaN(parseFloat(newQty))) {
     portfolio[index].quantity = parseFloat(newQty);
     savePortfolio();
-    updateChart();
+    window.addEventListener("load", updateChart);
+
   }
 };
 
