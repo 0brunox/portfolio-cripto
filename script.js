@@ -1,5 +1,3 @@
-const chartContainerId = "chartdiv";
-
 let portfolio = JSON.parse(localStorage.getItem('portfolio')) || [
   { id: 'bitcoin', symbol: 'BTC', quantity: 0.5 },
   { id: 'ethereum', symbol: 'ETH', quantity: 2 },
@@ -51,46 +49,40 @@ async function fetchPrices() {
 
 async function updateChart() {
   const prices = await fetchPrices();
+  const labels = [];
+  const values = [];
   let total = 0;
-  const data = [];
 
   portfolio.forEach(coin => {
     const price = prices[coin.id]?.brl || 0;
     const value = coin.quantity * price;
+    labels.push(coin.symbol);
+    values.push(value);
     total += value;
-    data.push({
-      category: coin.symbol,
-      value: value
-    });
   });
 
   document.getElementById('totalValue').textContent = `Valor total: R$ ${total.toFixed(2)}`;
   updateTokenList();
 
-  let container = document.getElementById("chartdiv");
-  container.innerHTML = "";
+  const data = [{
+    values: values,
+    labels: labels,
+    type: 'pie',
+    hole: 0.4,
+    textinfo: 'label+percent',
+    textposition: 'outside',
+    marker: {
+      colors: ['#f4b183', '#d9d9d9', '#6f42c1', '#a9d18e', '#5b9bd5', '#ff6384', '#36a2eb', '#ffcd56']
+    }
+  }];
 
-  am5.ready(function () {
-    let root = am5.Root.new(chartContainerId);
-    root.setThemes([am5themes_Dark.new(root)]);
+  const layout = {
+    paper_bgcolor: '#111',
+    font: { color: '#f1f1f1' },
+    showlegend: true
+  };
 
-    let chart = root.container.children.push(
-      am5percent.PieChart.new(root, {
-        layout: root.verticalLayout,
-        innerRadius: am5.percent(30)
-      })
-    );
-
-    let series = chart.series.push(
-      am5percent.PieSeries3D.new(root, {
-        valueField: "value",
-        categoryField: "category"
-      })
-    );
-
-    series.data.setAll(data);
-    series.appear(1000, 100);
-  });
+  Plotly.newPlot('chart', data, layout, { responsive: true });
 }
 
 document.getElementById('addTokenForm').addEventListener('submit', async (e) => {

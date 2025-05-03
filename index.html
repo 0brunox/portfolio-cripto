@@ -2,13 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Portfólio Cripto 3D</title>
-
-  <!-- amCharts 5 -->
-  <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
-  <script src="https://cdn.amcharts.com/lib/5/percent.js"></script>
-  <script src="https://cdn.amcharts.com/lib/5/themes/Dark.js"></script>
-
+  <title>Portfólio Cripto</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -18,11 +13,11 @@
       color: #f1f1f1;
     }
 
-    #chartdiv {
+    #chart {
       width: 100%;
       max-width: 600px;
-      height: 500px;
       margin: 20px auto;
+      height: 500px;
     }
 
     form {
@@ -66,7 +61,7 @@
 </head>
 <body>
   <h1>Portfólio Cripto</h1>
-  <div id="chartdiv"></div>
+  <div id="chart"></div>
   <p id="totalValue">Valor total: R$ 0,00</p>
 
   <form id="addTokenForm">
