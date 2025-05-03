@@ -2,69 +2,71 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Meu Portfólio Cripto</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
- <style>
-  body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    padding: 20px;
-    background-color: #111;
-    color: #f1f1f1;
-  }
+  <title>Portfólio Cripto 3D</title>
 
-  canvas {
-    max-width: 600px;
-    margin: 20px auto;
-    display: block;
-    background-color: #222;
-    border-radius: 10px;
-    padding: 20px;
-  }
+  <!-- amCharts 5 -->
+  <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+  <script src="https://cdn.amcharts.com/lib/5/percent.js"></script>
+  <script src="https://cdn.amcharts.com/lib/5/themes/Dark.js"></script>
 
-  form {
-    margin-top: 30px;
-  }
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 20px;
+      background-color: #111;
+      color: #f1f1f1;
+    }
 
-  input, button {
-    padding: 8px;
-    margin: 5px;
-    border-radius: 5px;
-    border: none;
-  }
+    #chartdiv {
+      width: 100%;
+      max-width: 600px;
+      height: 500px;
+      margin: 20px auto;
+    }
 
-  input {
-    background-color: #333;
-    color: white;
-  }
+    form {
+      margin-top: 30px;
+    }
 
-  button {
-    background-color: #00c853;
-    color: white;
-    cursor: pointer;
-  }
+    input, button {
+      padding: 8px;
+      margin: 5px;
+      border-radius: 5px;
+      border: none;
+    }
 
-  button:hover {
-    background-color: #00e676;
-  }
+    input {
+      background-color: #333;
+      color: white;
+    }
 
-  #tokenList div {
-    margin-top: 10px;
-    background-color: #1e1e1e;
-    padding: 10px;
-    border-radius: 5px;
-    display: inline-block;
-  }
+    button {
+      background-color: #00c853;
+      color: white;
+      cursor: pointer;
+    }
 
-  h1, h2, p {
-    color: #f1f1f1;
-  }
-</style>
+    button:hover {
+      background-color: #00e676;
+    }
 
+    #tokenList div {
+      margin-top: 10px;
+      background-color: #1e1e1e;
+      padding: 10px;
+      border-radius: 5px;
+      display: inline-block;
+    }
+
+    h1, h2, p {
+      color: #f1f1f1;
+    }
+  </style>
 </head>
 <body>
   <h1>Portfólio Cripto</h1>
-  <canvas id="portfolioChart"></canvas>
+  <div id="chartdiv"></div>
   <p id="totalValue">Valor total: R$ 0,00</p>
 
   <form id="addTokenForm">
@@ -73,8 +75,10 @@
     <input type="number" id="tokenQty" placeholder="Quantidade" step="any" required>
     <button type="submit">Adicionar Token</button>
   </form>
-<h2>Tokens adicionados</h2>
-<div id="tokenList"></div>
+
+  <h2>Tokens adicionados</h2>
+  <div id="tokenList"></div>
+
   <script src="script.js"></script>
 </body>
 </html>

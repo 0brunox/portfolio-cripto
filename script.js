@@ -1,7 +1,5 @@
-const ctx = document.getElementById('portfolioChart').getContext('2d');
-let chart;
+const chartContainerId = "chartdiv";
 
-// Recupera portfólio salvo ou usa padrão
 let portfolio = JSON.parse(localStorage.getItem('portfolio')) || [
   { id: 'bitcoin', symbol: 'BTC', quantity: 0.5 },
   { id: 'ethereum', symbol: 'ETH', quantity: 2 },
@@ -9,12 +7,10 @@ let portfolio = JSON.parse(localStorage.getItem('portfolio')) || [
   { id: 'tether', symbol: 'USDT', quantity: 1000 },
 ];
 
-// Salva no localStorage
 function savePortfolio() {
   localStorage.setItem('portfolio', JSON.stringify(portfolio));
 }
 
-// Atualiza a lista visual de tokens com botões de edição e remoção
 function updateTokenList() {
   const container = document.getElementById('tokenList');
   container.innerHTML = '';
@@ -29,7 +25,6 @@ function updateTokenList() {
   });
 }
 
-// Editar token
 window.editToken = function (index) {
   const token = portfolio[index];
   const newQty = prompt(`Nova quantidade para ${token.symbol}:`, token.quantity);
@@ -40,7 +35,6 @@ window.editToken = function (index) {
   }
 };
 
-// Remover token
 window.removeToken = function (index) {
   if (confirm(`Deseja remover ${portfolio[index].symbol}?`)) {
     portfolio.splice(index, 1);
@@ -49,50 +43,55 @@ window.removeToken = function (index) {
   }
 };
 
-// Buscar preços via CoinGecko
 async function fetchPrices() {
   const ids = portfolio.map(coin => coin.id).join(',');
   const res = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=brl`);
   return await res.json();
 }
 
-// Atualizar gráfico e valor total
 async function updateChart() {
   const prices = await fetchPrices();
-  const labels = [];
-  const values = [];
   let total = 0;
+  const data = [];
 
   portfolio.forEach(coin => {
     const price = prices[coin.id]?.brl || 0;
     const value = coin.quantity * price;
-    labels.push(`${coin.symbol} (R$${price.toFixed(2)})`);
-    values.push(value);
     total += value;
+    data.push({
+      category: coin.symbol,
+      value: value
+    });
   });
 
   document.getElementById('totalValue').textContent = `Valor total: R$ ${total.toFixed(2)}`;
   updateTokenList();
-  if (chart) chart.destroy();
-  chart = new Chart(ctx, {
-    type: 'pie',
-    data: {
-      labels,
-      datasets: [{
-        data: values,
-        backgroundColor: ['#f4b183', '#d9d9d9', '#6f42c1', '#a9d18e', '#5b9bd5', '#ff6384', '#36a2eb', '#ffcd56']
-      }]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: { position: 'bottom' }
-      }
-    }
+
+  am5.ready(function () {
+    am5.disposeAllRoot();
+
+    let root = am5.Root.new(chartContainerId);
+    root.setThemes([am5themes_Dark.new(root)]);
+
+    let chart = root.container.children.push(
+      am5percent.PieChart.new(root, {
+        layout: root.verticalLayout,
+        innerRadius: am5.percent(30)
+      })
+    );
+
+    let series = chart.series.push(
+      am5percent.PieSeries3D.new(root, {
+        valueField: "value",
+        categoryField: "category"
+      })
+    );
+
+    series.data.setAll(data);
+    series.appear(1000, 100);
   });
 }
 
-// Adição de novo token
 document.getElementById('addTokenForm').addEventListener('submit', async (e) => {
   e.preventDefault();
   const id = document.getElementById('tokenId').value.trim().toLowerCase();
@@ -112,5 +111,4 @@ document.getElementById('addTokenForm').addEventListener('submit', async (e) => 
   e.target.reset();
 });
 
-// Inicializa
 updateChart();
