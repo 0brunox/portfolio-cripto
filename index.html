@@ -63,12 +63,16 @@
 <body>
   <h1>Portfólio Cripto</h1>
   <label for="currencySelector">Moeda:</label>
-  <select id="currencySelector">
+  <button id="exportBtn">Exportar CSV</button> <select id="currencySelector">
     <option value="brl">BRL (R$)</option>
     <option value="usd">USD ($)</option>
   </select>
 
-  <div id="chart"></div>
+  <form id="importWalletForm">
+      <input type="text" id="walletAddress" placeholder="Endereço público Ethereum" required>
+      <button type="submit">📥 Importar tokens da carteira</button>
+    </form>
+    <div id="chart"></div>
   <p id="totalValue">Valor total: R$ 0,00</p>
   <div id="historyChart"></div>
 

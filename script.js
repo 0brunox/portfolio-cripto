@@ -137,3 +137,64 @@ document.getElementById('addTokenForm').addEventListener('submit', async (e) => 
 });
 
 window.addEventListener("load", updateChart);
+
+document.getElementById('exportBtn').addEventListener('click', async () => {
+  const prices = await fetchPrices();
+  const currencySymbol = selectedCurrency === 'usd' ? '$' : 'R$';
+
+  let csv = 'Token,Quantidade,Preço Médio,Valor Atual,PnL,PnL (%)\n';
+  portfolio.forEach(token => {
+    const price = prices[token.id]?.[selectedCurrency] || 0;
+    const currentValue = token.quantity * price;
+    const investedValue = token.quantity * token.avgPrice;
+    const pnl = currentValue - investedValue;
+    const pnlPercent = ((pnl / investedValue) * 100).toFixed(2);
+    csv += `${token.symbol},${token.quantity},${token.avgPrice},${price.toFixed(2)},${pnl.toFixed(2)},${pnlPercent}%\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'portfolio_cripto.csv';
+  link.click();
+});
+
+document.getElementById('importWalletForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const address = document.getElementById('walletAddress').value.trim();
+  if (!address) return alert("Endereço inválido");
+
+  const apiKey = 'cqt_rQbFyvHKVJm9JwtKb3pmqm7FYtr9'; // 🔁 Substituir pela sua API KEY do Covalent
+  const url = `https://api.covalenthq.com/v1/1/address/${address}/balances_v2/?key=${apiKey}`;
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (!data.data || !data.data.items) throw new Error("Erro ao buscar tokens");
+
+    const tokens = data.data.items.filter(t => t.balance > 0 && parseFloat(t.quote) > 0);
+    let count = 0;
+    for (const t of tokens) {
+      const id = t.contract_name.toLowerCase().replace(/\s+/g, '-');
+      const symbol = t.contract_ticker_symbol;
+      const quantity = t.balance / Math.pow(10, t.contract_decimals);
+      const price = t.quote / quantity;
+
+      if (!portfolio.find(tok => tok.symbol === symbol)) {
+        portfolio.push({ id, symbol, quantity: parseFloat(quantity.toFixed(6)), avgPrice: parseFloat(price.toFixed(2)) });
+        count++;
+      }
+    }
+
+    if (count > 0) {
+      savePortfolio();
+      updateChart();
+      alert(`✅ ${count} tokens importados com sucesso!`);
+    } else {
+      alert("Nenhum token novo foi adicionado.");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Erro ao importar tokens. Verifique o endereço ou a API Key.");
+  }
+});
