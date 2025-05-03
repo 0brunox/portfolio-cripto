@@ -69,7 +69,9 @@ async function updateChart() {
   updateTokenList();
 
   am5.ready(function () {
-    am5.disposeAllRoot();
+    let container = document.getElementById("chartdiv");
+container.innerHTML = "";
+
 
     let root = am5.Root.new(chartContainerId);
     root.setThemes([am5themes_Dark.new(root)]);
